@@ -69,7 +69,7 @@ def plot_compression_curve(ax, ks, z, z_surrogate, d, z_c='C2', d_c='C3'):
     
 
 
-def plot_absolute_compression_curve(ax, ks, z, d, z_c='C0', d_c='C1', n_dim=1):
+def plot_absolute_compression_curve(ax, ks, z, d, z_c='C2', d_c='C3', n_dim=1):
     """
         Simple compression curve plot, showing the absolute compression ratio
         and the absolute distortion        
