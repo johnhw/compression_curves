@@ -2,9 +2,9 @@
 
 This repostitory has some simple Python functions for analysing continuous (multivariate) time series in terms of compression. The basic principle is to quantize the continuous data, compress it with a standard algorithm (like LZW), and then measure how much shorter the compressed version is. 
 
-<img src="imgs/speech_compression_curve.png" width="80%">
+<img src="imgs/speech_compression_curve.png" width="100% ">
 
-*Normalised compression curve for a recording of human speech. Green line shows the compression ratio, while the orange shows (excess) quantisation error.*
+*Normalised compression curve for a recording of a few seconds of human speech (PCM, 11Khz). Green line shows the compression ratio, while the orange shows (excess) quantisation error.*
 
 ```python
 import scipy.io.wavfile
@@ -21,9 +21,9 @@ Any discretised compression obviously depends on the quantisation used. I addres
 
 Random data is incompressible, so shows a flat curve:
 
-<img src="imgs/std_normal_compression_curve.png" width="80%">
+<img src="imgs/std_normal_compression_curve.png" width="100% ">
 
-*Compression curve for random normal data -- incompressible data appears as a flat line.*
+*Compression curve for random normal data -- incompressible data appears as a flat green line.*
 
 The underlying hypothesis is that lossless compression like LZW (weakly) bounds the Kolmogorov complexity of a sequence, an approximation which gets better as sequences get longer. This is a practically useful measure of how "complex" a signal is, although theoretically controversial. Lossless compressors apply to discrete sequences, so a discretisation step is required. I use simple k-means vector quantisation. 
 
@@ -36,19 +36,19 @@ The standard plots produced by `plot_compression_curve` show:
 - the excess mean distortion in decibels, which is the the average error introduced by quantisation *minus* the expected quantisation level for `k` levels (6.02 log2(k) - 1.76 dB)
 The plots use a log-scale x-axis with number of clusters `k` ranging from 2 to 256, geometrically spaced.
 
-<img src="imgs/sine_compression_curve.png" width="80%">
+<img src="imgs/sine_compression_curve.png" width="100% ">
 
 *Compression curve for a sine wave as produced by `plot_compression_curve`. This signal is obviously very repetitive and compresses extremely well!*
 
 `plot_absolute_compression_curve` removes the surrogate compensation and the expected quantisation level and just plots the raw compression level and quantisation error.
 
-<img src="imgs/abs_sine_compression_curve.png" width="80%">
+<img src="imgs/abs_sine_compression_curve.png" width="100% ">
 
 *Absolute compression curve for the sine wave example.*
 
 The rate-distortion curve can be plotted with `plot_rd_curve`, and shows the surrogate-compensated compression ratio against absolute quantisation error:
 
-<img src="imgs/sine_rd_curve.png" width="80%">
+<img src="imgs/sine_rd_curve.png" width="100% ">
 
 *Rate-distortion curve for the sine wave.*
 
@@ -109,7 +109,7 @@ set_relative_compression_curve_axes(ax)
 
 This produces one curve per pyramid level:
 
-<img src="imgs/speech_pyramid_compression_curve.png" width="80%">
+<img src="imgs/speech_pyramid_compression_curve.png" width="100% ">
 
 *The speech example, with a Gaussian pyramid from decimation of 2^0 to 2^7*
 
@@ -118,7 +118,7 @@ This produces one curve per pyramid level:
 
 This example shows a 4D timeseries of ECG and breathing data from PhysioNet (see attribution below). The compression curve for a sweep through 1..4 PCA dimensions is shown below.
 
-<img src="imgs/ecg_resp_compression_curve.png" width="80%">
+<img src="imgs/ecg_resp_compression_curve.png" width="100% ">
 
 *ECG and breathing data, first 10000 samples from sample `b001` of the CEBSDB 1.0.0 dataset, with n=1 to n=4 PCA dimensions preserved.*
 

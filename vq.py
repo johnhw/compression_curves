@@ -6,6 +6,13 @@ import sklearn.decomposition, sklearn.preprocessing
 from compress import normalized_compress_len
 from fractions import Fraction
 
+try: 
+    import faiss 
+    faiss_available = True    
+except:
+    faiss_available = False
+    print("No faiss; kmeans will be slow")
+
 def gaussian_pyramid(signal, factor=2, min_length=1):
     """Take a MxN signal, and progressively blur
     and decimate the signal until it becomes [min_length x N].
@@ -75,9 +82,13 @@ def vq(m, k, whiten="standard", pca=None, subsample=1):
         m_white = sklearn.preprocess.MinMaxScaler().fit_transform(m)
     elif whiten == "none":
         m_white = m    
-    # compute cluster centres, optionally subsampling the data first    
-    code, distortion = scipy.cluster.vq.kmeans(m_white[::subsample], k)
-    codes, dists = scipy.cluster.vq.vq(m_white, code)
+    # compute cluster centres, optionally subsampling the data first   
+    if faiss_available:
+        code = faiss.kmeans(m_white[::subsample], k, niter=200) 
+        dists, codes = code.kmeans.index.search(m_white.astype(np.float32),1)
+    else:
+        code, distortion = scipy.cluster.vq.kmeans(m_white[::subsample], k)    
+        codes, dists = scipy.cluster.vq.vq(m_white, code)
     return codes, np.mean(dists)
 
 def vq_range(m, ks, **kwargs):
