@@ -4,6 +4,7 @@ import scipy.cluster
 import matplotlib.pyplot as plt
 import sklearn.decomposition, sklearn.preprocessing
 from compress import normalized_compress_len
+from fractions import Fraction
 
 def gaussian_pyramid(signal, factor=2, min_length=1):
     """Take a MxN signal, and progressively blur
@@ -18,9 +19,20 @@ def gaussian_pyramid(signal, factor=2, min_length=1):
     """
     pyramid_levels = [signal]
     std_dev = np.sqrt(factor**2 - 1)  # Calculate standard deviation for Gaussian filter
+
+    if factor!=int(factor):
+        # deal with non-integer factors using
+        # approximate repeat/decimate
+        f = Fraction(factor).limit_denominator(10)
+        up = f.numerator
+        down = f.denominator
+    else:
+        up = 1
+        down = factor
     while len(pyramid_levels[-1])>min_length:        
         smoothed_signal = gaussian_filter1d(pyramid_levels[-1], std_dev, axis=0)
-        downsampled_signal = smoothed_signal[::factor]
+        upsampled_signal = np.repeat(smoothed_signal, up, axis=0)
+        downsampled_signal = upsampled_signal[::down]
         pyramid_levels.append(downsampled_signal)
     return pyramid_levels
 
@@ -37,7 +49,7 @@ def pca_range(n):
         r.append(n)
     return r
 
-def vq(m, k, whiten="standard", pca=None):
+def vq(m, k, whiten="standard", pca=None, subsample=1):
     """
     Given a MxN matrix m representing a signal with N attributes
     and an integer k, vector quantize m, and return
@@ -49,19 +61,22 @@ def vq(m, k, whiten="standard", pca=None):
         codes: the vector quantized version of m
         distortion: the average distortion
     """
-    if whiten=="standard":        
-        m_white = sklearn.preprocessing.StandardScaler().fit_transform(m)
-    elif whiten=="sphere":
+    
+    if whiten=="sphere" or pca is not None:
         # PCA with no reduction
-        m_white = sklearn.decomposition.PCA(n_components=m.shape[1], whiten=True).fit_transform(m)
+        if whiten=="sphere":
+            n_components = m.shape[1]
+        else:
+            n_components = pca
+        m_white = sklearn.decomposition.PCA(n_components=n_components, whiten=True).fit_transform(m)
+    elif whiten=="standard":        
+        m_white = sklearn.preprocessing.StandardScaler().fit_transform(m)
     elif whiten=="minmax":
         m_white = sklearn.preprocess.MinMaxScaler().fit_transform(m)
     elif whiten == "none":
-        m_white = m
-    # allow PCA reduction if requested
-    if pca is not None:
-        m_white = sklearn.decomposition.PCA(m_white, n_components=pca, whiten=True).fit_transform(m)
-    code, distortion = scipy.cluster.vq.kmeans(m_white, k)
+        m_white = m    
+    # compute cluster centres, optionally subsampling the data first    
+    code, distortion = scipy.cluster.vq.kmeans(m_white[::subsample], k)
     codes, dists = scipy.cluster.vq.vq(m_white, code)
     return codes, np.mean(dists)
 
