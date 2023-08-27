@@ -16,8 +16,11 @@ z_curve, z_surrogate, d_curve = compression_surrogate_curve(ex7[:45000:4], k_r)
 plot_compression_curve(ax, k_r, z_curve, z_surrogate, d_curve)
 ```
 
+## Requirements
+The code depends on `scikit-learn`, `numpy` and `scipy` only. [faiss](https://github.com/facebookresearch/faiss) will be automatically used if installed to speed up vector quantisation.
 
-Any discretised compression obviously depends on the quantisation used. I address this by using vector quantisation, so quantisation adapts to the data distribution, and by quantising at a *range* of levels and plotting a compression curve of *ratio vs. quantisation_levels*. By comparing compression ratios to that of time-shuffled *surrogate* data the result is normalised so that it is less sensitive to quirks of compression algorithms.
+## Computing compression curves
+Any discretised compression obviously depends on the quantisation used. I use plain old vector quantisation, so quantisation adapts to the data distribution. By quantising at a *range* of levels and plotting a compression curve of *ratio vs. quantisation_levels* the effect of quantisation can be visualised. And by comparing compression ratios to that of time-shuffled *surrogate* discretised sequences the result can be normalised to be less sensitive to quirks of compression algorithms.
 
 Random data is incompressible, so shows a flat curve:
 

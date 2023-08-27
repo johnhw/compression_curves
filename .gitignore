@@ -1,2 +1,6 @@
 __pycache__
 *.pyc 
+hall_of_fame*
+gaussian_distance.ipynb
+*__pycache__*
+__pycache__/*

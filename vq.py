@@ -13,6 +13,16 @@ except:
     faiss_available = False
     print("No faiss; kmeans will be slow")
 
+def get_rational_factor(factor, max_denominator=10):
+    """Return a rational approximation of factor, with denominator <= max_denominator"""
+    if factor!=int(factor):
+        # deal with non-integer factors using
+        # approximate repeat/decimate
+        f = Fraction(factor).limit_denominator(10)
+        return f.numerator, f.denominator        
+    else:
+        return 1, factor
+
 def gaussian_pyramid(signal, factor=2, min_length=1):
     """Take a MxN signal, and progressively blur
     and decimate the signal until it becomes [min_length x N].
@@ -26,16 +36,8 @@ def gaussian_pyramid(signal, factor=2, min_length=1):
     """
     pyramid_levels = [signal]
     std_dev = np.sqrt(factor**2 - 1)  # Calculate standard deviation for Gaussian filter
-
-    if factor!=int(factor):
-        # deal with non-integer factors using
-        # approximate repeat/decimate
-        f = Fraction(factor).limit_denominator(10)
-        up = f.numerator
-        down = f.denominator
-    else:
-        up = 1
-        down = factor
+    up, down = get_rational_factor(factor)
+    
     while len(pyramid_levels[-1])>min_length:        
         smoothed_signal = gaussian_filter1d(pyramid_levels[-1], std_dev, axis=0)
         upsampled_signal = np.repeat(smoothed_signal, up, axis=0)
@@ -43,6 +45,24 @@ def gaussian_pyramid(signal, factor=2, min_length=1):
         pyramid_levels.append(downsampled_signal)
     return pyramid_levels
 
+def laplacian_pyramid(signal, factor=2, min_length=1):
+    """
+    Take a MxN signal, and progressively blur
+    and decimate the signal until it becomes [min_length x N].
+    Return each level of the Laplacian pyramid, from full resolution to min_length.
+    That is, the difference between each level and the previous level.
+    """
+    pyramid_levels = []
+    std_dev = np.sqrt(factor**2 - 1)  # Calculate standard deviation for Gaussian filter
+    up, down = get_rational_factor(factor)
+    
+    while len(signal)>min_length:        
+        smoothed_signal = gaussian_filter1d(signal, std_dev, axis=0)
+        upsampled_signal = np.repeat(smoothed_signal, up, axis=0)
+        downsampled_signal = upsampled_signal[::down]
+        pyramid_levels.append(signal - smoothed_signal)
+        signal = downsampled_signal
+    return pyramid_levels
 
 def pca_range(n):
     """Generate a sequence of integers decreasing by a factor of 2,
